@@ -31,7 +31,7 @@ Run `make preview` to see every symbol at five weights and two sizes.
 Add the package:
 
 ```swift
-.package(url: "https://github.com/intrusive-memory/icons.git", branch: "main")
+.package(url: "https://github.com/intrusive-memory/icons.git", from: "1.0.0")
 ```
 
 ```swift
@@ -49,7 +49,7 @@ Projects that don't use Swift can take the template SVGs straight from `Sources/
 
 ## Status
 
-- Public. There are no tagged releases yet, so consumers track `main`.
+- Public. Released as semver tags (no `v` prefix); consumers depend on "up to next major". Renaming or removing a symbol or an `Icon` case is a major version bump.
 - Platforms: macOS 14+, iOS 17+.
 
 ## License

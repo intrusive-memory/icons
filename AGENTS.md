@@ -48,4 +48,4 @@ Always use `make` (`make help` lists the targets). Never run `swift build` or `s
 ## Repo
 
 - `intrusive-memory/icons`, **public**.
-- Default branch is `main`. Consumers track `main` until there are tagged releases, so don't push breaking renames of `Icon` cases or symbol names without asking.
+- Default branch is `main`. Releases are semver tags without a `v` (`1.0.0`) plus a GitHub release. Consumers use "up to next major", so renaming or removing a symbol or `Icon` case requires a major bump. Ask before doing that. New symbols are a minor bump.
