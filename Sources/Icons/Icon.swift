@@ -10,6 +10,8 @@ public enum Icon: String, CaseIterable, Sendable {
     case storyboardCharacter = "storyboard.character"
     /// The storyboard panel framing an isometric cube.
     case storyboardProp = "storyboard.prop"
+    /// The storyboard panel framing a map pin.
+    case storyboardLocation = "storyboard.location"
     /// A storyboard panel stacked behind another, pierced by a left-to-right arrow.
     case storyboardSequence = "storyboard.sequence"
 

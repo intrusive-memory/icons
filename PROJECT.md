@@ -19,6 +19,7 @@ The intrusive-memory custom icon library. Every icon is a **custom SF Symbol**: 
 | `storyboard` | `Icon.storyboard` | One panel with two caption lines | Vinetas |
 | `storyboard.character` | `Icon.storyboardCharacter` | The storyboard panel framing a head and shoulders (a CHARACTER) | Vinetas |
 | `storyboard.prop` | `Icon.storyboardProp` | The storyboard panel framing an isometric cube (a PROP) | Vinetas |
+| `storyboard.location` | `Icon.storyboardLocation` | The storyboard panel framing a map pin (a LOCATION) | Vinetas |
 | `storyboard.sequence` | `Icon.storyboardSequence` | A half panel stacked behind a full one, pierced by a left-to-right arrow | Vinetas |
 
 Named `storyboard.*` on purpose: the system symbol name `character` already exists (a typography glyph).

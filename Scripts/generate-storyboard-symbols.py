@@ -12,6 +12,7 @@ six weights and the M/L scales.
   storyboard           one panel with two caption lines under it
   storyboard.character the storyboard panel framing a head and shoulders
   storyboard.prop      the storyboard panel framing an isometric cube
+  storyboard.location  the storyboard panel framing a map pin
   storyboard.sequence  two stacked panels, the back one showing only its left
                        half, pierced left to right by an arrow
 
@@ -21,6 +22,7 @@ In hierarchical mode the panels and their subjects (storyboard.*) and the front 
 Usage: python3 Scripts/generate-storyboard-symbols.py
 """
 
+import math
 from pathlib import Path
 
 OUT_DIR = Path(__file__).resolve().parent.parent / "Sources" / "Icons" / "Resources" / "Icons.xcassets"
@@ -111,14 +113,15 @@ def storyboard(stroke, subject=None):
     return width, [("primary", panels), ("secondary", captions)]
 
 
-def circle(cx, cy, r):
+def circle(cx, cy, r, clockwise=True):
     k = r * KAPPA
+    s = 1 if clockwise else -1  # counter-clockwise mirrors x to cut a hole
     return to_path([
         ("M", (cx, cy - r)),
-        ("C", (cx + k, cy - r), (cx + r, cy - k), (cx + r, cy)),
-        ("C", (cx + r, cy + k), (cx + k, cy + r), (cx, cy + r)),
-        ("C", (cx - k, cy + r), (cx - r, cy + k), (cx - r, cy)),
-        ("C", (cx - r, cy - k), (cx - k, cy - r), (cx, cy - r)),
+        ("C", (cx + s * k, cy - r), (cx + s * r, cy - k), (cx + s * r, cy)),
+        ("C", (cx + s * r, cy + k), (cx + s * k, cy + r), (cx, cy + r)),
+        ("C", (cx - s * k, cy + r), (cx - s * r, cy + k), (cx - s * r, cy)),
+        ("C", (cx - s * r, cy - k), (cx - s * k, cy - r), (cx, cy - r)),
     ])
 
 
@@ -182,12 +185,42 @@ def cube(x, y, w, h, stroke):
     return "".join(to_path([("M", f[0])] + [("L", p) for p in f[1:]]) for f in faces)
 
 
+def map_pin(x, y, w, h, stroke):
+    """Teardrop map pin with a round hole, centered in the panel."""
+    pin_h = h * 0.8
+    r = pin_h * 0.37
+    cx, cy = x + w / 2, y + (h - pin_h) / 2 + r
+    tip = cy + pin_h - r
+    beta = math.acos(r / (tip - cy))
+    start = math.pi / 2 + beta  # left tangent point; sweep clockwise over the top
+    sweep = 2 * math.pi - 2 * beta
+    steps = 4
+    a = sweep / steps
+    k = 4 / 3 * math.tan(a / 4) * r
+    pts = [("M", (cx + r * math.cos(start), cy + r * math.sin(start)))]
+    for i in range(steps):
+        p0, p1 = start + a * i, start + a * (i + 1)
+        pts.append((
+            "C",
+            (cx + r * math.cos(p0) - k * math.sin(p0), cy + r * math.sin(p0) + k * math.cos(p0)),
+            (cx + r * math.cos(p1) + k * math.sin(p1), cy + r * math.sin(p1) - k * math.cos(p1)),
+            (cx + r * math.cos(p1), cy + r * math.sin(p1)),
+        ))
+    pts.append(("L", (cx, tip)))
+    hole = r * 0.42 - stroke * 0.12
+    return to_path(pts) + circle(cx, cy, hole, clockwise=False)
+
+
 def storyboard_character(stroke):
     return storyboard(stroke, bust)
 
 
 def storyboard_prop(stroke):
     return storyboard(stroke, cube)
+
+
+def storyboard_location(stroke):
+    return storyboard(stroke, map_pin)
 
 
 def to_path(pts):
@@ -374,6 +407,7 @@ SYMBOLS = [
     ("storyboard", storyboard),
     ("storyboard.character", storyboard_character),
     ("storyboard.prop", storyboard_prop),
+    ("storyboard.location", storyboard_location),
     ("storyboard.sequence", storyboard_sequence),
 ]
 
