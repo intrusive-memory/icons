@@ -4,7 +4,7 @@ title: Icons
 author: Tom Stovall
 created: 2026-10-20T00:00:00Z
 description: "Custom SF Symbols for intrusive-memory apps, shipped as a Swift package so every project uses the same icons."
-visibility: private
+visibility: public
 tags: [sf-symbols, icons, swiftui, swift-package]
 ---
 
@@ -23,7 +23,7 @@ Run `make preview` to see every symbol at five weights and two sizes.
 
 ## Using it
 
-Add the package (private repo, so the consuming machine needs GitHub access):
+Add the package:
 
 ```swift
 .package(url: "https://github.com/intrusive-memory/icons.git", branch: "main")
@@ -44,5 +44,5 @@ Projects that don't use Swift can take the template SVGs straight from `Sources/
 
 ## Status
 
-- Private for now. There are no tagged releases yet, so consumers track `main`.
+- Public. There are no tagged releases yet, so consumers track `main`.
 - Platforms: macOS 14+, iOS 17+.

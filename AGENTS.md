@@ -47,5 +47,5 @@ Always use `make` (`make help` lists the targets). Never run `swift build` or `s
 
 ## Repo
 
-- `intrusive-memory/icons`, **private**. Don't change its visibility unless the user asks.
+- `intrusive-memory/icons`, **public**.
 - Default branch is `main`. Consumers track `main` until there are tagged releases, so don't push breaking renames of `Icon` cases or symbol names without asking.
