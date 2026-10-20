@@ -46,3 +46,7 @@ Projects that don't use Swift can take the template SVGs straight from `Sources/
 
 - Public. There are no tagged releases yet, so consumers track `main`.
 - Platforms: macOS 14+, iOS 17+.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
