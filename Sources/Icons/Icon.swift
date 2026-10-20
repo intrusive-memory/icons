@@ -6,6 +6,10 @@ import SwiftUI
 public enum Icon: String, CaseIterable, Sendable {
     /// A single storyboard panel with caption lines.
     case storyboard
+    /// The storyboard panel framing a head and shoulders.
+    case storyboardCharacter = "storyboard.character"
+    /// The storyboard panel framing an isometric cube.
+    case storyboardProp = "storyboard.prop"
     /// A storyboard panel stacked behind another, pierced by a left-to-right arrow.
     case storyboardSequence = "storyboard.sequence"
 

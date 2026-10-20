@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate SF Symbols templates for the custom storyboard icons.
 
-Writes the storyboard and storyboard.sequence symbolsets into
+Writes the storyboard family of symbolsets (see SYMBOLS) into
 Sources/Icons/Resources/Icons.xcassets. Each SVG is an SF Symbols 4 template
 (Ultralight-S, Regular-S, Black-S) that also opens in SF Symbols.app.
 
@@ -10,10 +10,12 @@ Every weight emits the same path commands, so Xcode can interpolate the other
 six weights and the M/L scales.
 
   storyboard           one panel with two caption lines under it
+  storyboard.character the storyboard panel framing a head and shoulders
+  storyboard.prop      the storyboard panel framing an isometric cube
   storyboard.sequence  two stacked panels, the back one showing only its left
                        half, pierced left to right by an arrow
 
-In hierarchical mode the panels (storyboard) and the front panel + arrow
+In hierarchical mode the panels and their subjects (storyboard.*) and the front panel + arrow
 (sequence) are primary; captions and the back panel are secondary.
 
 Usage: python3 Scripts/generate-storyboard-symbols.py
@@ -89,7 +91,8 @@ def capsule(x, cy, w, stroke):
     return rounded_rect(x, cy - stroke / 2, w, stroke, stroke / 2 * 0.999)
 
 
-def storyboard(stroke):
+def storyboard(stroke, subject=None):
+    """One panel with two caption lines; `subject` draws inside the panel."""
     width, panel_h = 92.0, 56.0
     gap = 8.0 + stroke * 0.25
     pitch = 5.5 + stroke  # caption line spacing
@@ -99,10 +102,92 @@ def storyboard(stroke):
     top = OPTICAL_CENTER - height / 2
     x = SIDEBEARING
     panels = frame(x, top, width, panel_h, stroke)
+    if subject:
+        # Interior box of the panel: left, top, width, height.
+        panels += subject(x + stroke, top + stroke, width - 2 * stroke, panel_h - 2 * stroke, stroke)
     captions = capsule(x, top + caption1, width * 0.72, stroke) + capsule(
         x, top + caption2, width * 0.42, stroke
     )
     return width, [("primary", panels), ("secondary", captions)]
+
+
+def circle(cx, cy, r):
+    k = r * KAPPA
+    return to_path([
+        ("M", (cx, cy - r)),
+        ("C", (cx + k, cy - r), (cx + r, cy - k), (cx + r, cy)),
+        ("C", (cx + r, cy + k), (cx + k, cy + r), (cx, cy + r)),
+        ("C", (cx - k, cy + r), (cx - r, cy + k), (cx - r, cy)),
+        ("C", (cx - r, cy - k), (cx - k, cy - r), (cx, cy - r)),
+    ])
+
+
+def bust(x, y, w, h, stroke):
+    """Head and shoulders standing on the panel's bottom edge, like a portrait crop."""
+    cx, bottom = x + w / 2, y + h
+    shoulders_h, half_w = h * 0.3, h * 0.48
+    radius = h * 0.22
+    gap = 1.2 + stroke * 0.3
+    sy = bottom - shoulders_h
+    rr = shoulders_h * 0.9
+    k = rr * KAPPA
+    shoulders = to_path([
+        ("M", (cx - half_w, bottom + stroke / 2)),  # overlap the frame so they fuse
+        ("L", (cx - half_w, sy + rr)),
+        ("C", (cx - half_w, sy + rr - k), (cx - half_w + rr - k, sy), (cx - half_w + rr, sy)),
+        ("L", (cx + half_w - rr, sy)),
+        ("C", (cx + half_w - rr + k, sy), (cx + half_w, sy + rr - k), (cx + half_w, sy + rr)),
+        ("L", (cx + half_w, bottom + stroke / 2)),
+    ])
+    return circle(cx, sy - gap - radius, radius) + shoulders
+
+
+def inset_polygon(points, offsets):
+    """Move edge i (points[i] -> points[i+1]) inward by offsets[i]."""
+    n = len(points)
+    area = sum(points[i][0] * points[(i + 1) % n][1] - points[(i + 1) % n][0] * points[i][1] for i in range(n))
+    sign = 1 if area > 0 else -1
+    lines = []
+    for i in range(n):
+        (x1, y1), (x2, y2) = points[i], points[(i + 1) % n]
+        dx, dy = x2 - x1, y2 - y1
+        length = (dx * dx + dy * dy) ** 0.5
+        nx, ny = -dy / length * sign, dx / length * sign
+        d = offsets[i]
+        lines.append(((x1 + nx * d, y1 + ny * d), (dx, dy)))
+    out = []
+    for i in range(n):
+        (p1, d1), (p2, d2) = lines[i - 1], lines[i]
+        det = d1[0] * d2[1] - d1[1] * d2[0]
+        t = ((p2[0] - p1[0]) * d2[1] - (p2[1] - p1[1]) * d2[0]) / det
+        out.append((p1[0] + d1[0] * t, p1[1] + d1[1] * t))
+    return out
+
+
+def cube(x, y, w, h, stroke):
+    """Isometric cube: three filled faces split by thin gaps."""
+    cx, cy = x + w / 2, y + h / 2
+    R = h * 0.4
+    c30 = R * 0.8660254
+    top, bottom = (cx, cy - R), (cx, cy + R)
+    ur, lr = (cx + c30, cy - R / 2), (cx + c30, cy + R / 2)
+    ul, ll = (cx - c30, cy - R / 2), (cx - c30, cy + R / 2)
+    mid = (cx, cy)
+    g = (0.9 + stroke * 0.22) / 2  # half the gap between faces
+    faces = [
+        inset_polygon([top, ur, mid, ul], [0, g, g, 0]),
+        inset_polygon([ul, mid, bottom, ll], [g, g, 0, 0]),
+        inset_polygon([mid, ur, lr, bottom], [g, 0, 0, g]),
+    ]
+    return "".join(to_path([("M", f[0])] + [("L", p) for p in f[1:]]) for f in faces)
+
+
+def storyboard_character(stroke):
+    return storyboard(stroke, bust)
+
+
+def storyboard_prop(stroke):
+    return storyboard(stroke, cube)
 
 
 def to_path(pts):
@@ -285,8 +370,16 @@ def template(name, build):
     return "\n".join(lines)
 
 
+SYMBOLS = [
+    ("storyboard", storyboard),
+    ("storyboard.character", storyboard_character),
+    ("storyboard.prop", storyboard_prop),
+    ("storyboard.sequence", storyboard_sequence),
+]
+
+
 def main():
-    for name, build in (("storyboard", storyboard), ("storyboard.sequence", storyboard_sequence)):
+    for name, build in SYMBOLS:
         symbolset = OUT_DIR / f"{name}.symbolset"
         symbolset.mkdir(parents=True, exist_ok=True)
         path = symbolset / f"{name}.svg"
